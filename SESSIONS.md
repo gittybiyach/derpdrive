@@ -9,3 +9,15 @@
 **Action:** Set up git repo at `/home/tone/derpdrive/`, copied templates, wrote PLAN.md + SESSIONS.md, created GitHub repo `gittybiyach/derpdrive`, pushed.
 **Result:** Repo live at https://github.com/gittybiyach/derpdrive
 **Escalation:** no
+
+**Timestamp:** 2026-07-27
+**Agent:** Claude (opencode)
+**Action:** Tested all 12 tools end-to-end against real Google Drive. Sequence: searched for "Reason Together" folder → created test file → read it → appended content → read again → overwrote content → read again → deleted → confirmed deletion. Found bug: `drive_write` sent `parents` on update requests (Google doesn't allow it). Fixed in `src/drive.ts` — parents now only set on create, omitted on update.
+**Result:** All 12 tools working. Fix applied to both `~/.local/share/mcp-servers/google-drive/` (live) and `~/derpdrive/` (git repo). OAuth token valid and auto-refreshing.
+**Escalation:** no
+
+**Timestamp:** 2026-07-27
+**Agent:** Claude (opencode)
+**Action:** Updated PLAN.md with full spec, agent handoff notes, fix log, and detailed verification checklist. Updated SESSIONS.md with journal entries. Synced `src/drive.ts` fix to git repo. Created test log at `tests/verification-log.md`. Committed + pushed to git and Lore.
+**Result:** Repo fully documented. Handoff-ready for any agent.
+**Escalation:** no

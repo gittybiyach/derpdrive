@@ -110,15 +110,16 @@ export async function writeFile(
   fileId?: string,
 ): Promise<FileInfo> {
   const media = { mimeType, body: content };
-  const requestBody: drive_v3.Schema$File = { name, mimeType };
-  if (parentId) requestBody.parents = [parentId];
 
   let res: { data: drive_v3.Schema$File };
+  const requestBody: drive_v3.Schema$File = { name, mimeType };
+  if (parentId && !fileId) requestBody.parents = [parentId];
+
   if (fileId) {
     res = await drive.files.update({
       fileId,
       media,
-      requestBody,
+      requestBody: { name, mimeType },
       supportsAllDrives: true,
     });
   } else {
