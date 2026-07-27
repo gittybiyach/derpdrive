@@ -7,7 +7,7 @@ checklist after ANY change and append results here.
 
 ## 2026-07-27 — initial verification (all 12 tools)
 
-**Agent:** opencode (DeepSeek)
+**Agent:** Claude (opencode)
 **Environment:** Local, against real Google Drive (sisco7211@gmail.com)
 **Server version:** `dist/index.js` compiled 2026-07-27
 
