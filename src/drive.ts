@@ -101,6 +101,19 @@ export async function readFileContent(
   return { content: res.data as string, mimeType };
 }
 
+// Source formats Drive knows how to import into a native Google type on create.
+// requestBody.mimeType must be the TARGET native type for conversion to trigger;
+// media.mimeType stays the SOURCE format being uploaded. Conflating the two (the
+// original bug here) makes `files.create` store the raw source type literally,
+// with no conversion — e.g. a "text/markdown" mimeType creates a plain-text file
+// named .md instead of an editable Google Doc.
+const NATIVE_CONVERSION_TARGET: Record<string, string> = {
+  "text/plain": "application/vnd.google-apps.document",
+  "text/markdown": "application/vnd.google-apps.document",
+  "text/html": "application/vnd.google-apps.document",
+  "text/csv": "application/vnd.google-apps.spreadsheet",
+};
+
 export async function writeFile(
   drive: drive_v3.Drive,
   name: string,
@@ -112,17 +125,27 @@ export async function writeFile(
   const media = { mimeType, body: content };
 
   let res: { data: drive_v3.Schema$File };
-  const requestBody: drive_v3.Schema$File = { name, mimeType };
-  if (parentId && !fileId) requestBody.parents = [parentId];
 
   if (fileId) {
+    // Updating an existing file never changes its type — Drive imports the new
+    // media content into whatever the file already is (verified: updating an
+    // existing native Doc with text/markdown media correctly re-converts it).
     res = await drive.files.update({
       fileId,
       media,
-      requestBody: { name, mimeType },
+      requestBody: { name },
       supportsAllDrives: true,
     });
   } else {
+    // Creating new: convert known text formats into an editable native Google
+    // type by default (that's what nearly every caller actually wants from a
+    // MIME type like "text/markdown"). Anything not in the map (e.g. a native
+    // google-apps.* type passed explicitly, or something like application/json)
+    // is created literally, unchanged from prior behavior.
+    const targetMimeType = NATIVE_CONVERSION_TARGET[mimeType] ?? mimeType;
+    const requestBody: drive_v3.Schema$File = { name, mimeType: targetMimeType };
+    if (parentId) requestBody.parents = [parentId];
+
     res = await drive.files.create({
       media,
       requestBody,
